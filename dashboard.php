@@ -1,7 +1,9 @@
 <?php
-// Query untuk mendapatkan total barang dan alert stok habis
+// Query untuk mendapatkan total barang
 $total_barang = $conn->query("SELECT COUNT(*) AS total FROM inventory")->fetch_assoc()['total'];
-$alert_barang = $conn->query("SELECT COUNT(*) AS alert FROM alert_stok_habis")->fetch_assoc()['alert'];
+
+// Query untuk mendapatkan jumlah barang dengan stok 0
+$alert_barang = $conn->query("SELECT COUNT(*) AS alert FROM inventory WHERE kuantitas_stok = 0")->fetch_assoc()['alert'];
 ?>
 
 <!DOCTYPE html>

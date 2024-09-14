@@ -65,16 +65,6 @@ $low_stock_items = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
                     </a>
                 </li>
                 <li>
-                    <a href="index.php?page=alert_stok_habis" class="flex items-center p-3 hover:bg-blue-300 rounded-md">
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6 mr-2">
-                            <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
-                            <line x1="12" y1="9" x2="12" y2="13"/>
-                            <line x1="12" y1="17" x2="12.01" y2="17"/>
-                        </svg>
-                        <span>Barang Habis Stok</span>
-                    </a>
-                </li>
-                <li>
                     <a href="index.php?page=laporan" class="flex items-center p-3 hover:bg-blue-300 rounded-md">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6 mr-2">
                             <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
@@ -153,7 +143,7 @@ $low_stock_items = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
                     <?php endforeach; ?>
                 </ul>
             <?php else: ?>
-                <p>Tidak ada hasil yang ditemukan.</p>
+                <p class="text-red-500">Tidak ada hasil yang ditemukan.</p>
             <?php endif; ?>
         <?php endif; ?>
 
@@ -181,9 +171,6 @@ $low_stock_items = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
                 break;
             case 'inventory':
                 include 'inventory.php';
-                break;
-            case 'alert_stok_habis':
-                include 'alert_stok_habis.php';
                 break;
             case 'laporan':
                 include 'laporan.php';
