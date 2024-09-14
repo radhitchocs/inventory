@@ -33,16 +33,22 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['add_item'])) {
 }
 
 // Handle delete action
-if (isset($_GET['delete_item_id'])) {
-    $delete_item_id = intval($_GET['delete_item_id']);
+if (isset($_POST['delete_item']) && isset($_POST['delete_item_id'])) {
+    $delete_item_id = intval($_POST['delete_item_id']);
+    
+    // Check if item is referenced in transactions (for logging purposes)
+    $check_stmt = $conn->prepare("SELECT COUNT(*) as count FROM transaksi_inventory WHERE barang_id = ?"); //query untuk mengecek apakah item ini terkait dengan transaksi
+    $check_stmt->bind_param("i", $delete_item_id);
+    $check_stmt->execute(); 
+    $result = $check_stmt->get_result();
+    $row = $result->fetch_assoc();
+    $is_referenced = $row['count'] > 0;
+    $check_stmt->close();
+
+    // Proceed with deletion
     $stmt = $conn->prepare("DELETE FROM inventory WHERE barang_id = ?");
     $stmt->bind_param("i", $delete_item_id);
-    if ($stmt->execute()) {
-        header('Location: your_page.php'); // Redirect to avoid re-submission
-        exit;
-    } else {
-        $add_item_error = "Gagal menghapus barang. Error: " . $stmt->error;
-    }
+    $stmt->execute();
     $stmt->close();
 }
 
@@ -130,6 +136,19 @@ $storage_units_result = $conn->query($storage_units_query);
     function closeModal() {
         document.getElementById('modal').style.display = 'none';
     }
+
+    function deleteItem(id) {
+        if (confirm('Apakah Anda yakin ingin menghapus item ini?')) {
+            $.post('', { delete_item_id: id }, function(response) {
+                if (response.success) {
+                    alert('Item berhasil dihapus');
+                    location.reload();
+                } else {
+                    alert('Gagal menghapus item: ' + response.error);
+                }
+            }, 'json');
+        }
+    }
 </script>
 
 </head>
@@ -186,10 +205,13 @@ $storage_units_result = $conn->query($storage_units_query);
                         <td class="px-6 py-4 border-b border-gray-300"><?php echo htmlspecialchars($row['harga']); ?></td>
                         <td class="px-6 py-4 border-b border-gray-300"><?php echo htmlspecialchars($row['nama_vendor']); ?></td>
                         <td class="px-6 py-4 border-b border-gray-300">
-                            <a href="detail_barang.php?barang_id=<?php echo $row['barang_id']; ?>" class="text-blue-500 hover:underline">Detail</a>
-                            <button onclick="openModal(<?php echo $row['barang_id']; ?>, '<?php echo htmlspecialchars($row['nama_barang']); ?>', '<?php echo htmlspecialchars($row['jenis_barang']); ?>', <?php echo $row['kuantitas_stok']; ?>, <?php echo $row['lokasi_gudang_id']; ?>, <?php echo $row['harga']; ?>)" class="text-blue-500 hover:underline ml-2">Update</button>
-                            <a href="?delete_item_id=<?php echo $row['barang_id']; ?>" class="text-red-500 hover:underline ml-2">Delete</a>
-                        </td>
+    <a href="detail_barang.php?barang_id=<?php echo $row['barang_id']; ?>" class="text-blue-500 hover:underline">Detail</a>
+    <button onclick="openModal(<?php echo $row['barang_id']; ?>, '<?php echo htmlspecialchars($row['nama_barang']); ?>', '<?php echo htmlspecialchars($row['jenis_barang']); ?>', <?php echo $row['kuantitas_stok']; ?>, <?php echo $row['lokasi_gudang_id']; ?>, <?php echo $row['harga']; ?>)" class="text-blue-500 hover:underline ml-2">Update</button>
+    <form method="POST" style="display:inline;">
+        <input type="hidden" name="delete_item_id" value="<?php echo $row['barang_id']; ?>">
+        <button type="submit" name="delete_item" class="text-red-500 hover:underline ml-2" onclick="return confirm('Apakah Anda yakin ingin menghapus item ini?');">Delete</button>
+    </form>
+</td>
                     </tr>
                     <?php } ?>
                 </tbody>
