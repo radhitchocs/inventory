@@ -145,21 +145,31 @@ $result = $conn->query("SELECT * FROM storage_unit");
         <!-- Daftar Gudang -->
         <div class="bg-white p-6 rounded-lg shadow-lg">
             <h2 class="text-xl font-bold text-gray-700 mb-4">Daftar Gudang</h2>
-            <ul class="space-y-3">
+            <!-- Header Table -->
+            <div class="grid grid-cols-4 gap-4 mb-4 bg-gray-100 p-4 rounded-lg border border-gray-200">
+                <span class="font-medium text-gray-600">Nama Gudang</span>
+                <span class="font-medium text-gray-600">Lokasi</span>
+                <span class="font-medium text-gray-600">Aksi</span>
+                <span></span> <!-- Empty column for spacing -->
+            </div>
+
+            <!-- Body Table -->
+            <div>
                 <?php while ($row = $result->fetch_assoc()) { ?>
-                <li class="flex justify-between items-center p-4 bg-gray-50 rounded-lg border border-gray-200">
-                    <span class="font-medium text-gray-700"><?php echo htmlspecialchars($row['nama_gudang']); ?></span>
-                    <span class="text-gray-500"><?php echo htmlspecialchars($row['lokasi']); ?></span>
-                    <div>
-                        <button onclick="openModal(<?php echo $row['gudang_id']; ?>, '<?php echo htmlspecialchars($row['nama_gudang']); ?>', '<?php echo htmlspecialchars($row['lokasi']); ?>')" class="text-blue-500 hover:underline">Update</button>
-                        <form method="POST" style="display:inline;">
-                            <input type="hidden" name="delete_storage_id" value="<?php echo $row['gudang_id']; ?>">
-                            <button type="submit" name="delete_storage" class="text-red-500 hover:underline ml-2" onclick="return confirm('Apakah Anda yakin ingin menghapus gudang ini?');">Delete</button>
-                        </form>
+                    <div class="grid grid-cols-4 gap-4 border-b border-gray-200 p-4">
+                        <span class="text-gray-600"><?php echo htmlspecialchars($row['nama_gudang']); ?></span>
+                        <span class="text-gray-600"><?php echo htmlspecialchars($row['lokasi']); ?></span>
+                        <div class="flex space-x-2">
+                            <button onclick="openModal('<?php echo $row['gudang_id']; ?>', '<?php echo htmlspecialchars($row['nama_gudang']); ?>', '<?php echo htmlspecialchars($row['lokasi']); ?>')" class="text-blue-500 hover:underline">Update</button>
+                            <form method="POST" style="display:inline;">
+                                <input type="hidden" name="delete_storage_id" value="<?php echo $row['gudang_id']; ?>">
+                                <button type="submit" name="delete_storage" class="text-red-500 hover:underline">Hapus</button>
+                            </form>
+                        </div>
+                        <span></span> <!-- Empty column for spacing -->
                     </div>
-                </li>
                 <?php } ?>
-            </ul>
+            </div>
         </div>
     </div>
 
