@@ -16,25 +16,50 @@ $stmt = $conn->prepare("SELECT i.*, s.nama_gudang, v.nama_vendor
 $stmt->bind_param("i", $barang_id);
 $stmt->execute();
 $barang = $stmt->get_result()->fetch_assoc();
-
 ?>
 
 <!DOCTYPE html>
 <html lang="id">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Detail Barang</title>
+    <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body>
-    <h1>Detail Barang</h1>
-    <p>Nama: <?php echo htmlspecialchars($barang['nama_barang']); ?></p>
-    <p>Jenis: <?php echo htmlspecialchars($barang['jenis_barang']); ?></p>
-    <p>Stok: <?php echo htmlspecialchars($barang['kuantitas_stok']); ?></p>
-    <p>Lokasi Gudang: <?php echo htmlspecialchars($barang['nama_gudang']); ?></p>
-    <p>Harga: <?php echo htmlspecialchars($barang['harga']); ?></p>
-    <p>Vendor: <?php echo htmlspecialchars($barang['nama_vendor']); ?></p>
-    <p>Barcode: <?php echo htmlspecialchars($barang['barcode']); ?></p>
-
-    <a href="index.php?page=inventory">Kembali ke Daftar Barang</a>
+<body class="bg-gray-100 min-h-screen flex items-center justify-center">
+    <div class="w-full max-w-4xl mx-auto bg-white shadow-lg rounded-lg p-8">
+        <h1 class="text-3xl font-bold text-gray-800 mb-6">Detail Barang</h1>
+        <div class="space-y-4">
+            <div class="flex justify-between">
+                <span class="font-semibold text-gray-700">Nama:</span>
+                <span><?php echo htmlspecialchars($barang['nama_barang']); ?></span>
+            </div>
+            <div class="flex justify-between">
+                <span class="font-semibold text-gray-700">Jenis:</span>
+                <span><?php echo htmlspecialchars($barang['jenis_barang']); ?></span>
+            </div>
+            <div class="flex justify-between">
+                <span class="font-semibold text-gray-700">Stok:</span>
+                <span><?php echo htmlspecialchars($barang['kuantitas_stok']); ?></span>
+            </div>
+            <div class="flex justify-between">
+                <span class="font-semibold text-gray-700">Lokasi Gudang:</span>
+                <span><?php echo htmlspecialchars($barang['nama_gudang']); ?></span>
+            </div>
+            <div class="flex justify-between">
+                <span class="font-semibold text-gray-700">Harga:</span>
+                <span><?php echo htmlspecialchars($barang['harga']); ?></span>
+            </div>
+            <div class="flex justify-between">
+                <span class="font-semibold text-gray-700">Vendor:</span>
+                <span><?php echo htmlspecialchars($barang['nama_vendor']); ?></span>
+            </div>
+            <div class="flex justify-between">
+                <span class="font-semibold text-gray-700">Barcode:</span>
+                <span><?php echo htmlspecialchars($barang['barcode']); ?></span>
+            </div>
+        </div>
+        <a href="index.php?page=inventory" class="mt-6 inline-block px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600">Kembali ke Daftar Barang</a>
+    </div>
 </body>
 </html>
