@@ -134,8 +134,10 @@ $result = $conn->query("SELECT barang_id, nama_barang FROM inventory");
                         JOIN inventory i ON t.barang_id = i.barang_id
                         JOIN admin a ON t.admin_id = a.admin_id
                     ");
-                    while ($transaksi = $transaksi_result->fetch_assoc()) { ?>
-                    <tr class="border-b">
+                    while ($transaksi = $transaksi_result->fetch_assoc()) { 
+                        $bg_color = $transaksi['tipe_transaksi'] === 'masuk' ? 'bg-green-100' : 'bg-red-100';
+                    ?>
+                    <tr class="border-b <?php echo $bg_color; ?>">
                         <td class="p-4"><?php echo htmlspecialchars($transaksi['nama_barang']); ?></td>
                         <td class="p-4"><?php echo htmlspecialchars($transaksi['jumlah']); ?></td>
                         <td class="p-4"><?php echo htmlspecialchars(ucfirst($transaksi['tipe_transaksi'])); ?></td>
