@@ -15,11 +15,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['add_item'])) {
     $kuantitas_stok = $_POST['kuantitas_stok'];
     $lokasi_gudang_id = $_POST['lokasi_gudang_id'];
     $harga = $_POST['harga'];
+    $vendor_id = $_POST['vendor_id']; // Ambil dari form input
     
     // Generate a unique barcode
     $barcode = uniqid();
-    
-    $vendor_id = 1; // Replace with actual vendor_id or form input
 
     $stmt = $conn->prepare("INSERT INTO inventory (nama_barang, jenis_barang, kuantitas_stok, lokasi_gudang_id, barcode, harga, vendor_id) VALUES (?, ?, ?, ?, ?, ?, ?)");
     $stmt->bind_param("ssiisdi", $nama_barang, $jenis_barang, $kuantitas_stok, $lokasi_gudang_id, $barcode, $harga, $vendor_id);
@@ -37,7 +36,7 @@ if (isset($_POST['delete_item']) && isset($_POST['delete_item_id'])) {
     $delete_item_id = intval($_POST['delete_item_id']);
     
     // Check if item is referenced in transactions (for logging purposes)
-    $check_stmt = $conn->prepare("SELECT COUNT(*) as count FROM transaksi_inventory WHERE barang_id = ?"); //query untuk mengecek apakah item ini terkait dengan transaksi
+    $check_stmt = $conn->prepare("SELECT COUNT(*) as count FROM transaksi_inventory WHERE barang_id = ?");
     $check_stmt->bind_param("i", $delete_item_id);
     $check_stmt->execute(); 
     $result = $check_stmt->get_result();
@@ -60,9 +59,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['update_item'])) {
     $kuantitas_stok = $_POST['kuantitas_stok'];
     $lokasi_gudang_id = $_POST['lokasi_gudang_id'];
     $harga = $_POST['harga'];
+    $vendor_id = $_POST['vendor_id']; // Ambil dari form input
     
-    $stmt = $conn->prepare("UPDATE inventory SET nama_barang = ?, jenis_barang = ?, kuantitas_stok = ?, lokasi_gudang_id = ?, harga = ? WHERE barang_id = ?");
-    $stmt->bind_param("ssiidi", $nama_barang, $jenis_barang, $kuantitas_stok, $lokasi_gudang_id, $harga, $barang_id);
+    $stmt = $conn->prepare("UPDATE inventory SET nama_barang = ?, jenis_barang = ?, kuantitas_stok = ?, lokasi_gudang_id = ?, harga = ?, vendor_id = ? WHERE barang_id = ?");
+    $stmt->bind_param("ssiidii", $nama_barang, $jenis_barang, $kuantitas_stok, $lokasi_gudang_id, $harga, $vendor_id, $barang_id);
     
     if ($stmt->execute()) {
         $add_item_success = "Barang berhasil diperbarui!";
@@ -72,7 +72,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['update_item'])) {
     $stmt->close();
 }
 
-// Query untuk mendapatkan semua barang dari tabel inventory dan join dengan storage_unit untuk mendapatkan nama lokasi gudang
+// Query untuk mendapatkan semua barang dari tabel inventory dan join dengan storage_unit dan vendor
 $query = "
     SELECT i.*, s.nama_gudang, v.nama_vendor
     FROM inventory i
@@ -81,9 +81,12 @@ $query = "
 ";
 $result = $conn->query($query);
 
-// Query untuk mendapatkan daftar lokasi gudang untuk dropdown
+// Query untuk mendapatkan daftar lokasi gudang dan vendor untuk dropdown
 $storage_units_query = "SELECT * FROM storage_unit";
 $storage_units_result = $conn->query($storage_units_query);
+
+$vendors_query = "SELECT * FROM vendor";
+$vendors_result = $conn->query($vendors_query);
 ?>
 
 <!DOCTYPE html>
@@ -115,7 +118,7 @@ $storage_units_result = $conn->query($storage_units_query);
         }
     </style>
     <script>
-    function openModal(id, name, type, stock, location, price) {
+    function openModal(id, name, type, stock, location, price, vendor) {
         document.getElementById('modal').style.display = 'flex';
         document.getElementById('update_barang_id').value = id;
         document.getElementById('update_nama_barang').value = name;
@@ -128,6 +131,15 @@ $storage_units_result = $conn->query($storage_units_query);
         for (var i = 0; i < locationDropdown.options.length; i++) {
             if (locationDropdown.options[i].value == location) {
                 locationDropdown.selectedIndex = i;
+                break;
+            }
+        }
+
+        // Set the selected vendor in the dropdown
+        var vendorDropdown = document.getElementById('update_vendor_id');
+        for (var i = 0; i < vendorDropdown.options.length; i++) {
+            if (vendorDropdown.options[i].value == vendor) {
+                vendorDropdown.selectedIndex = i;
                 break;
             }
         }
@@ -171,6 +183,14 @@ $storage_units_result = $conn->query($storage_units_query);
                     <?php } ?>
                 </select>
                 
+                <!-- Dropdown untuk Vendor -->
+                <select name="vendor_id" required class="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <option value="">Pilih Vendor</option>
+                    <?php while ($row = $vendors_result->fetch_assoc()) { ?>
+                    <option value="<?php echo $row['vendor_id']; ?>"><?php echo htmlspecialchars($row['nama_vendor']); ?></option>
+                    <?php } ?>
+                </select>
+                
                 <input type="number" step="0.01" name="harga" placeholder="Harga" required class="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
                 <button type="submit" name="add_item" class="w-full bg-blue-500 text-white py-2 rounded-md hover:bg-blue-600">Tambah Barang</button>
                 <?php if ($add_item_success) echo "<p class='text-green-500 mt-4'>$add_item_success</p>"; ?>
@@ -205,13 +225,13 @@ $storage_units_result = $conn->query($storage_units_query);
                         <td class="px-6 py-4 border-b border-gray-300"><?php echo htmlspecialchars($row['harga']); ?></td>
                         <td class="px-6 py-4 border-b border-gray-300"><?php echo htmlspecialchars($row['nama_vendor']); ?></td>
                         <td class="px-6 py-4 border-b border-gray-300">
-    <a href="detail_barang.php?barang_id=<?php echo $row['barang_id']; ?>" class="text-blue-500 hover:underline">Detail</a>
-    <button onclick="openModal(<?php echo $row['barang_id']; ?>, '<?php echo htmlspecialchars($row['nama_barang']); ?>', '<?php echo htmlspecialchars($row['jenis_barang']); ?>', <?php echo $row['kuantitas_stok']; ?>, <?php echo $row['lokasi_gudang_id']; ?>, <?php echo $row['harga']; ?>)" class="text-blue-500 hover:underline ml-2">Update</button>
-    <form method="POST" style="display:inline;">
-        <input type="hidden" name="delete_item_id" value="<?php echo $row['barang_id']; ?>">
-        <button type="submit" name="delete_item" class="text-red-500 hover:underline ml-2" onclick="return confirm('Apakah Anda yakin ingin menghapus item ini?');">Delete</button>
-    </form>
-</td>
+                            <a href="detail_barang.php?barang_id=<?php echo $row['barang_id']; ?>" class="text-blue-500 hover:underline">Detail</a>
+                            <button onclick="openModal(<?php echo $row['barang_id']; ?>, '<?php echo htmlspecialchars($row['nama_barang']); ?>', '<?php echo htmlspecialchars($row['jenis_barang']); ?>', <?php echo $row['kuantitas_stok']; ?>, <?php echo $row['lokasi_gudang_id']; ?>, <?php echo $row['harga']; ?>, <?php echo $row['vendor_id']; ?>)" class="text-blue-500 hover:underline ml-2">Update</button>
+                            <form method="POST" style="display:inline;">
+                                <input type="hidden" name="delete_item_id" value="<?php echo $row['barang_id']; ?>">
+                                <button type="submit" name="delete_item" class="text-red-500 hover:underline ml-2" onclick="return confirm('Apakah Anda yakin ingin menghapus item ini?');">Delete</button>
+                            </form>
+                        </td>
                     </tr>
                     <?php } ?>
                 </tbody>
@@ -220,36 +240,45 @@ $storage_units_result = $conn->query($storage_units_query);
     </div>
 
     <!-- Modal Update -->
-    <!-- Modal Update -->
-<div id="modal" class="modal">
-    <div class="modal-content">
-        <h2 class="text-2xl font-bold text-gray-700 mb-4">Update Barang</h2>
-        <form method="POST">
-            <input type="hidden" id="update_barang_id" name="barang_id">
-            <input type="text" id="update_nama_barang" name="nama_barang" placeholder="Nama Barang" required class="w-full px-4 py-2 border rounded-md mb-4 focus:outline-none focus:ring-2 focus:ring-blue-500">
-            <input type="text" id="update_jenis_barang" name="jenis_barang" placeholder="Jenis Barang" required class="w-full px-4 py-2 border rounded-md mb-4 focus:outline-none focus:ring-2 focus:ring-blue-500">
-            <input type="number" id="update_kuantitas_stok" name="kuantitas_stok" placeholder="Kuantitas Stok" required class="w-full px-4 py-2 border rounded-md mb-4 focus:outline-none focus:ring-2 focus:ring-blue-500">
-            
-            <!-- Dropdown untuk Lokasi Gudang -->
-            <select id="update_lokasi_gudang_id" name="lokasi_gudang_id" required class="w-full px-4 py-2 border rounded-md mb-4 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                <option value="">Pilih Lokasi Gudang</option>
-                <?php 
-                // Reset the result set pointer
-                $storage_units_result->data_seek(0); 
-                while ($row = $storage_units_result->fetch_assoc()) { 
-                ?>
-                <option value="<?php echo $row['gudang_id']; ?>"><?php echo htmlspecialchars($row['nama_gudang']); ?></option>
-                <?php } ?>
-            </select>
-            
-            <input type="number" id="update_harga" step="0.01" name="harga" placeholder="Harga" required class="w-full px-4 py-2 border rounded-md mb-4 focus:outline-none focus:ring-2 focus:ring-blue-500">
-            <button type="submit" name="update_item" class="w-full bg-blue-500 text-white py-2 rounded-md hover:bg-blue-600">Update Barang</button>
-            <button type="button" onclick="closeModal()" class="w-full bg-red-500 text-white py-2 rounded-md mt-2 hover:bg-red-600">Cancel</button>
-        </form>
+    <div id="modal" class="modal">
+        <div class="modal-content">
+            <h2 class="text-2xl font-bold text-gray-700 mb-4">Update Barang</h2>
+            <form method="POST">
+                <input type="hidden" id="update_barang_id" name="barang_id">
+                <input type="text" id="update_nama_barang" name="nama_barang" placeholder="Nama Barang" required class="w-full px-4 py-2 border rounded-md mb-4 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <input type="text" id="update_jenis_barang" name="jenis_barang" placeholder="Jenis Barang" required class="w-full px-4 py-2 border rounded-md mb-4 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <input type="number" id="update_kuantitas_stok" name="kuantitas_stok" placeholder="Kuantitas Stok" required class="w-full px-4 py-2 border rounded-md mb-4 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                
+                <!-- Dropdown untuk Lokasi Gudang -->
+                <select id="update_lokasi_gudang_id" name="lokasi_gudang_id" required class="w-full px-4 py-2 border rounded-md mb-4 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <option value="">Pilih Lokasi Gudang</option>
+                    <?php 
+                    // Reset the result set pointer
+                    $storage_units_result->data_seek(0); 
+                    while ($row = $storage_units_result->fetch_assoc()) { 
+                    ?>
+                    <option value="<?php echo $row['gudang_id']; ?>"><?php echo htmlspecialchars($row['nama_gudang']); ?></option>
+                    <?php } ?>
+                </select>
+                
+                <!-- Dropdown untuk Vendor -->
+                <select id="update_vendor_id" name="vendor_id" required class="w-full px-4 py-2 border rounded-md mb-4 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <option value="">Pilih Vendor</option>
+                    <?php 
+                    // Reset the result set pointer
+                    $vendors_result->data_seek(0); 
+                    while ($row = $vendors_result->fetch_assoc()) { 
+                    ?>
+                    <option value="<?php echo $row['vendor_id']; ?>"><?php echo htmlspecialchars($row['nama_vendor']); ?></option>
+                    <?php } ?>
+                </select>
+                
+                <input type="number" id="update_harga" step="0.01" name="harga" placeholder="Harga" required class="w-full px-4 py-2 border rounded-md mb-4 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <button type="submit" name="update_item" class="w-full bg-blue-500 text-white py-2 rounded-md hover:bg-blue-600">Update Barang</button>
+                <button type="button" onclick="closeModal()" class="w-full bg-red-500 text-white py-2 rounded-md mt-2 hover:bg-red-600">Cancel</button>
+            </form>
+        </div>
     </div>
-</div>
-
 
 </body>
 </html>
-
