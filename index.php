@@ -38,9 +38,24 @@ $low_stock_items = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Inventory Management System</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap');
+        
+        .app-title {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(45deg, #3B82F6, #2563EB);
+            -webkit-background-clip: text;
+            color: transparent;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+        }
+    </style>
 </head>
 <body class="flex min-h-screen bg-blue-50">
     <div class="w-64 bg-blue-200 text-blue-800">
+        <div class="p-6 bg-gray-300 text-white shadow-md">  
+            <h1 class="app-title text-3xl font-bold text-center mb-2">StockMaster</h1>
+            <p class="text-sm text-blue-600 text-center">Inventory Control System</p>
+        </div>
         <div class="p-4">
             <ul class="space-y-2">
                 <li>
