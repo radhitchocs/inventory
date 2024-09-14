@@ -65,18 +65,6 @@ $low_stock_items = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
                     </a>
                 </li>
                 <li>
-                    <a href="index.php?page=laporan" class="flex items-center p-3 hover:bg-blue-300 rounded-md">
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6 mr-2">
-                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-                            <polyline points="14 2 14 8 20 8"/>
-                            <line x1="16" y1="13" x2="8" y2="13"/>
-                            <line x1="16" y1="17" x2="8" y2="17"/>
-                            <polyline points="10 9 9 9 8 9"/>
-                        </svg>
-                        <span>Buat Laporan</span>
-                    </a>
-                </li>
-                <li>
                     <a href="index.php?page=storage_unit" class="flex items-center p-3 hover:bg-blue-300 rounded-md">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6 mr-2">
                             <path d="M3 3h18v18H3zM3 9h18M3 15h18M9 9v12M15 9v12"/>
@@ -171,9 +159,6 @@ $low_stock_items = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
                 break;
             case 'inventory':
                 include 'inventory.php';
-                break;
-            case 'laporan':
-                include 'laporan.php';
                 break;
             case 'storage_unit':
                 include 'storage_unit.php';
