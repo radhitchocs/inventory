@@ -50,29 +50,19 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['update_vendor'])) {
 }
 
 // Handle Delete Vendor
-if (isset($_POST['delete_vendor']) && isset($_POST['delete_vendor_id'])) {
-    $vendor_id = intval($_POST['delete_vendor_id']);
+if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['delete_vendor'])) {
+    $vendor_id = $_POST['delete_vendor_id'];
 
-    // Check if vendor is referenced in inventory
-    $check_stmt = $conn->prepare("SELECT COUNT(*) as count FROM inventory WHERE vendor_id = ?");
-    $check_stmt->bind_param("i", $vendor_id);
-    $check_stmt->execute();
-    $result = $check_stmt->get_result();
-    $row = $result->fetch_assoc();
-    $is_referenced = $row['count'] > 0;
-    $check_stmt->close();
+    // Delete the vendor
+    $stmt = $conn->prepare("DELETE FROM vendor WHERE vendor_id = ?");
+    $stmt->bind_param("i", $vendor_id);
 
-    if (!$is_referenced) {
-        // Proceed with deletion
-        $stmt = $conn->prepare("DELETE FROM vendor WHERE vendor_id = ?");
-        $stmt->bind_param("i", $vendor_id);
-        $stmt->execute();
-        $stmt->close();
-
+    if ($stmt->execute()) {
         $success_message = "Vendor berhasil dihapus!";
     } else {
-        $error_message = "Vendor tidak dapat dihapus karena masih digunakan.";
+        $error_message = "Gagal menghapus vendor: " . $stmt->error;
     }
+    $stmt->close();
 }
 
 // Query untuk mendapatkan semua vendor
